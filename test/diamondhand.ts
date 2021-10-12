@@ -58,6 +58,15 @@ describe('DiamondHand Contract', () => {
       await expect(txDeposit).to.changeEtherBalances([diamondHand, addr1], [depositAmount, depositAmount.mul(-1)]);
     });
 
+    it('DiamondDeposit event emitted', async () => {
+      const depositAmount = ethers.utils.parseEther('1');
+      const txDeposit = await diamondHand.connect(addr1).deposit({
+        value: depositAmount,
+      });
+
+      await expect(txDeposit).to.emit(diamondHand, 'DiamondDeposit');
+    });
+
     it('deposit second time', async () => {
       const depositAmount = ethers.utils.parseEther('1');
       await diamondHand.connect(addr1).deposit({
@@ -114,6 +123,19 @@ describe('DiamondHand Contract', () => {
 
       // check balance change
       await expect(txWithdraw).to.changeEtherBalances([diamondHand, addr1], [depositAmount.mul(-1), depositAmount]);
+    });
+
+    it('DiamondWithdraw event emitted', async () => {
+      const depositAmount = ethers.utils.parseEther('1');
+      await diamondHand.connect(addr1).deposit({
+        value: depositAmount,
+      });
+
+      increaseWorldTimeInSeconds(TWO_YEARS_IN_SECONDS, true);
+
+      const txWithdraw = await diamondHand.connect(addr1).withdraw();
+
+      await expect(txWithdraw).to.emit(diamondHand, 'DiamondWithdraw').withArgs(addr1.address, depositAmount);
     });
   });
 });
