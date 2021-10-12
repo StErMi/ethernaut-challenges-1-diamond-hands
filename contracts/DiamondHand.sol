@@ -23,7 +23,10 @@ contract DiamondHand {
     mapping(address => DiamondLock) private diamonds;
 
     /// @notice Event when a Diamond is locked
-    event PurposeChange(address indexed owner, uint256 value, uint256 unlockTimestamp);
+    event DiamondDeposit(address indexed owner, uint256 amount, uint256 unlockTimestamp);
+
+    /// @notice Event when a Diamond is withdrawn
+    event DiamondWithdraw(address indexed owner, uint256 amount);
 
     function deposit() public payable {
         require(msg.value > 0, "You need to lock at least some ETH");
@@ -38,7 +41,7 @@ contract DiamondHand {
 
         diamonds[msg.sender] = lock;
 
-        emit PurposeChange(lock.owner, lock.amount, lock.unlockTimestamp);
+        emit DiamondDeposit(lock.owner, lock.amount, lock.unlockTimestamp);
     }
 
     function withdraw() public {
@@ -52,6 +55,8 @@ contract DiamondHand {
 
         (bool success, ) = lock.owner.call{value: balance}("");
         require(success, "Unable to send value, recipient may have reverted");
+
+        emit DiamondWithdraw(lock.owner, balance);
     }
 
     function getDiamond(address owner) public view returns (DiamondLock memory diamond) {
